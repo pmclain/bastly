@@ -18,18 +18,24 @@ const mapDispatchToProps = dispatch => {
         const serviceId = ServicesResult.data.data[0].id;
         FastlyService.setServiceId(serviceId);
         FastlyService.getService().then(serviceResult => {
-          serviceResult.data.versions.forEach(version => {
+          let activeVersion;
+          serviceResult.data.versions.forEach((version, idx) => {
             if (version.active) {
               FastlyService.setVersion(version.number);
-              dispatch(setApiKey(
-                apiKey,
-                ServicesResult.data.data,
-                serviceId,
-                serviceResult.data.versions,
-                version
-              ));
+              activeVersion = version;
+            } else if (activeVersion === undefined && idx === (serviceResult.data.versions.length - 1)) {
+              //Use last version if none are active
+              FastlyService.setVersion(version.number);
+              activeVersion = version;
             }
           });
+          dispatch(setApiKey(
+            apiKey,
+            ServicesResult.data.data,
+            serviceId,
+            serviceResult.data.versions,
+            activeVersion
+          ));
         });
       });
     },
